@@ -1,0 +1,97 @@
+
+MotorCode.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         00000048  00000000  00000000  00000074  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .data         00000000  00800060  00000048  000000bc  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .comment      00000030  00000000  00000000  000000bc  2**0
+                  CONTENTS, READONLY
+  3 .debug_aranges 00000020  00000000  00000000  000000ec  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  4 .debug_info   00000087  00000000  00000000  0000010c  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  5 .debug_abbrev 00000053  00000000  00000000  00000193  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  6 .debug_line   000000be  00000000  00000000  000001e6  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_frame  00000024  00000000  00000000  000002a4  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  8 .debug_str    00000135  00000000  00000000  000002c8  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  9 .debug_ranges 00000010  00000000  00000000  000003fd  2**0
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	10 c0       	rjmp	.+32     	; 0x22 <__ctors_end>
+   2:	17 c0       	rjmp	.+46     	; 0x32 <__bad_interrupt>
+   4:	16 c0       	rjmp	.+44     	; 0x32 <__bad_interrupt>
+   6:	15 c0       	rjmp	.+42     	; 0x32 <__bad_interrupt>
+   8:	14 c0       	rjmp	.+40     	; 0x32 <__bad_interrupt>
+   a:	13 c0       	rjmp	.+38     	; 0x32 <__bad_interrupt>
+   c:	12 c0       	rjmp	.+36     	; 0x32 <__bad_interrupt>
+   e:	11 c0       	rjmp	.+34     	; 0x32 <__bad_interrupt>
+  10:	10 c0       	rjmp	.+32     	; 0x32 <__bad_interrupt>
+  12:	0f c0       	rjmp	.+30     	; 0x32 <__bad_interrupt>
+  14:	0e c0       	rjmp	.+28     	; 0x32 <__bad_interrupt>
+  16:	0d c0       	rjmp	.+26     	; 0x32 <__bad_interrupt>
+  18:	0c c0       	rjmp	.+24     	; 0x32 <__bad_interrupt>
+  1a:	0b c0       	rjmp	.+22     	; 0x32 <__bad_interrupt>
+  1c:	0a c0       	rjmp	.+20     	; 0x32 <__bad_interrupt>
+  1e:	09 c0       	rjmp	.+18     	; 0x32 <__bad_interrupt>
+  20:	08 c0       	rjmp	.+16     	; 0x32 <__bad_interrupt>
+
+00000022 <__ctors_end>:
+  22:	11 24       	eor	r1, r1
+  24:	1f be       	out	0x3f, r1	; 63
+  26:	cf e5       	ldi	r28, 0x5F	; 95
+  28:	d2 e0       	ldi	r29, 0x02	; 2
+  2a:	de bf       	out	0x3e, r29	; 62
+  2c:	cd bf       	out	0x3d, r28	; 61
+  2e:	02 d0       	rcall	.+4      	; 0x34 <main>
+  30:	09 c0       	rjmp	.+18     	; 0x44 <_exit>
+
+00000032 <__bad_interrupt>:
+  32:	e6 cf       	rjmp	.-52     	; 0x0 <__vectors>
+
+00000034 <main>:
+	
+	^ All pins set as outputs
+	
+	*/
+	
+	DDRB |= (1<<PB2);
+  34:	ba 9a       	sbi	0x17, 2	; 23
+	clkIO (no prescaling as of now)
+	
+	toggle OC0A on compare match.
+	*/
+	
+	TCCR0A = (0<<COM0A1) | (1<<COM0A0) | 
+  36:	81 e4       	ldi	r24, 0x41	; 65
+  38:	80 bf       	out	0x30, r24	; 48
+			 (0<<COM0B1) | (0<<COM0B0) | 
+			 (0>>WGM01) | (1<<WGM00);
+	
+	TCCR0B = (1<<WGM02) | (0<<CS02) |
+  3a:	89 e0       	ldi	r24, 0x09	; 9
+  3c:	83 bf       	out	0x33, r24	; 51
+	
+
+	while (1)
+	{
+		//Output Compare Registers
+		OCR0A = 0x1F;
+  3e:	8f e1       	ldi	r24, 0x1F	; 31
+  40:	86 bf       	out	0x36, r24	; 54
+  42:	fe cf       	rjmp	.-4      	; 0x40 <__SREG__+0x1>
+
+00000044 <_exit>:
+  44:	f8 94       	cli
+
+00000046 <__stop_program>:
+  46:	ff cf       	rjmp	.-2      	; 0x46 <__stop_program>
