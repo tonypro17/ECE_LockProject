@@ -7,6 +7,7 @@
 
 
 #include <avr/io.h>
+#include <util/delay.h>
 
 int main(void)
 {
@@ -31,15 +32,15 @@ int main(void)
 	 
 	 */
 	
+	
+	//Set PD7 as input, and PD5, PD4, PD3 as output
+	PORTD.DIRSET = PIN3_bm || PIN4_bm || PIN5_bm;
+	
     while(1)
     {
 		//If "open door" signal is received, turn
-		if(PD7){
-			PD3 = 1;	//ENA = HIGH
-			PD4 = 1;	//IN1 = HIGH
-			PD5 = 0;	//IN2 = LOW
-			
-			
+		if(PORTD.IN & (1<<7)){
+			PORTD.OUTSET = 0b0001100;	//ENA = HIGH...IN1 = HIGH...IN2 = LOW	
 		/*
 			For future....
 			
@@ -50,13 +51,10 @@ int main(void)
 			*INTERRUPT?*
 		*/
 		
-		
 		}
 		//Rest in "brake" state
 		else{
-			PD3 = 1;	//ENA = HIGH
-			PD4 = 1;	//IN1 = HIGH
-			PD5 = 1;	//IN2 = HIGH
+			PORTD.OUTSET = 0b0011100;	//ENA = HIGH //IN1 = HIGH //IN2 = HIGH
 		}
 		
     }
