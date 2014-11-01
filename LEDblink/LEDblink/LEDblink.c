@@ -16,8 +16,10 @@ int main(void)
 	   
 	   while(1){ // loop forever
 		   PORTA.OUTSET = 0b00000001 ; // set the output high.
+		   /*
 		   _delay_ms( BLINK_DELAY_MS ) ; // wait.
 		   PORTA.OUTCLR = 0b00000001 ; // set the output low.
 		   _delay_ms( BLINK_DELAY_MS ) ; // wait.
+		   */
 	   }
 }

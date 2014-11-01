@@ -3,25 +3,25 @@ HBridgeActivation.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .text         00000238  00000000  00000000  00000074  2**1
+  0 .text         0000022c  00000000  00000000  00000074  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  1 .data         00000000  00802000  00000238  000002ac  2**0
+  1 .data         00000000  00802000  0000022c  000002a0  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  2 .comment      00000030  00000000  00000000  000002ac  2**0
+  2 .comment      00000030  00000000  00000000  000002a0  2**0
                   CONTENTS, READONLY
-  3 .debug_aranges 00000020  00000000  00000000  000002dc  2**0
+  3 .debug_aranges 00000020  00000000  00000000  000002d0  2**0
                   CONTENTS, READONLY, DEBUGGING
-  4 .debug_info   0000021f  00000000  00000000  000002fc  2**0
+  4 .debug_info   0000021f  00000000  00000000  000002f0  2**0
                   CONTENTS, READONLY, DEBUGGING
-  5 .debug_abbrev 00000094  00000000  00000000  0000051b  2**0
+  5 .debug_abbrev 00000094  00000000  00000000  0000050f  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_line   00000153  00000000  00000000  000005af  2**0
+  6 .debug_line   00000146  00000000  00000000  000005a3  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_frame  00000024  00000000  00000000  00000704  2**2
+  7 .debug_frame  00000024  00000000  00000000  000006ec  2**2
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_str    00000239  00000000  00000000  00000728  2**0
+  8 .debug_str    00000239  00000000  00000000  00000710  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_ranges 00000010  00000000  00000000  00000961  2**0
+  9 .debug_ranges 00000010  00000000  00000000  00000949  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -296,7 +296,7 @@ Disassembly of section .text:
  210:	1a be       	out	0x3a, r1	; 58
  212:	1b be       	out	0x3b, r1	; 59
  214:	02 d0       	rcall	.+4      	; 0x21a <main>
- 216:	0e c0       	rjmp	.+28     	; 0x234 <_exit>
+ 216:	08 c0       	rjmp	.+16     	; 0x228 <_exit>
 
 00000218 <__bad_interrupt>:
  218:	f3 ce       	rjmp	.-538    	; 0x0 <__vectors>
@@ -307,48 +307,23 @@ Disassembly of section .text:
 	
 	
 	//Set PD7 as input, and PD5, PD4, PD3 as output
-	PORTD.DIRSET = PIN3_bm || PIN4_bm || PIN5_bm;
+	PORTD.DIRSET = (PIN2_bm || PIN3_bm || PIN4_bm);
  21a:	81 e0       	ldi	r24, 0x01	; 1
  21c:	e0 e6       	ldi	r30, 0x60	; 96
  21e:	f6 e0       	ldi	r31, 0x06	; 6
  220:	81 83       	std	Z+1, r24	; 0x01
 		*/
 		
-		}
+		//}
 		//Rest in "brake" state
-		else{
-			PORTD.OUTSET = 0b0011100;	//ENA = HIGH //IN1 = HIGH //IN2 = HIGH
- 222:	9c e1       	ldi	r25, 0x1C	; 28
-	
-    while(1)
-    {
-		//If "open door" signal is received, turn
-		if(PORTD.IN & (1<<7)){
-			PORTD.OUTSET = 0b0001100;	//ENA = HIGH...IN1 = HIGH...IN2 = LOW	
- 224:	2c e0       	ldi	r18, 0x0C	; 12
-	PORTD.DIRSET = PIN3_bm || PIN4_bm || PIN5_bm;
-	
-    while(1)
-    {
-		//If "open door" signal is received, turn
-		if(PORTD.IN & (1<<7)){
- 226:	80 85       	ldd	r24, Z+8	; 0x08
- 228:	88 23       	and	r24, r24
- 22a:	14 f4       	brge	.+4      	; 0x230 <main+0x16>
-			PORTD.OUTSET = 0b0001100;	//ENA = HIGH...IN1 = HIGH...IN2 = LOW	
- 22c:	25 83       	std	Z+5, r18	; 0x05
- 22e:	fb cf       	rjmp	.-10     	; 0x226 <main+0xc>
-		*/
-		
-		}
-		//Rest in "brake" state
-		else{
-			PORTD.OUTSET = 0b0011100;	//ENA = HIGH //IN1 = HIGH //IN2 = HIGH
- 230:	95 83       	std	Z+5, r25	; 0x05
- 232:	f9 cf       	rjmp	.-14     	; 0x226 <main+0xc>
+		//else{
+			PORTD.OUTSET = 0b00011100;	//ENA = HIGH //IN1 = HIGH //IN2 = HIGH
+ 222:	8c e1       	ldi	r24, 0x1C	; 28
+ 224:	85 83       	std	Z+5, r24	; 0x05
+ 226:	fe cf       	rjmp	.-4      	; 0x224 <main+0xa>
 
-00000234 <_exit>:
- 234:	f8 94       	cli
+00000228 <_exit>:
+ 228:	f8 94       	cli
 
-00000236 <__stop_program>:
- 236:	ff cf       	rjmp	.-2      	; 0x236 <__stop_program>
+0000022a <__stop_program>:
+ 22a:	ff cf       	rjmp	.-2      	; 0x22a <__stop_program>

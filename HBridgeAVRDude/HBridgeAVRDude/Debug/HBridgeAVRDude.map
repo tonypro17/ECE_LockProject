@@ -6,8 +6,8 @@ c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1056/avr8-gnu-t
 Discarded input sections
 
  .bss           0x00000000        0x0 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1056/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avrxmega7/crtx128a4u.o
- .text          0x00000000        0x0 HBridgeActivation.o
- .bss           0x00000000        0x0 HBridgeActivation.o
+ .text          0x00000000        0x0 HBridgeAVRDude.o
+ .bss           0x00000000        0x0 HBridgeAVRDude.o
  .text          0x00000000        0x0 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1056/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avrxmega7\libgcc.a(_exit.o)
  .bss           0x00000000        0x0 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1056/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avrxmega7\libgcc.a(_exit.o)
  .text.libgcc.mul
@@ -39,7 +39,7 @@ user_signatures  0x00850000         0x00000400         rw !x
 Linker script and memory map
 
 LOAD c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1056/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avrxmega7/crtx128a4u.o
-LOAD HBridgeActivation.o
+LOAD HBridgeAVRDude.o
 START GROUP
 LOAD c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1056/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avrxmega7\libm.a
 END GROUP
@@ -139,7 +139,7 @@ END GROUP
 .rela.plt
  *(.rela.plt)
 
-.text           0x00000000      0x22c
+.text           0x00000000      0x246
  *(.vectors)
  .vectors       0x00000000      0x1fc c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1056/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avrxmega7/crtx128a4u.o
                 0x00000000                __vector_default
@@ -321,13 +321,13 @@ END GROUP
                 0x00000218                __vector_120
                 0x0000021a                . = ALIGN (0x2)
  *(.text.*)
- .text.main     0x0000021a        0xe HBridgeActivation.o
+ .text.main     0x0000021a       0x28 HBridgeAVRDude.o
                 0x0000021a                main
-                0x00000228                . = ALIGN (0x2)
+                0x00000242                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x00000228        0x0 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1056/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avrxmega7\libgcc.a(_exit.o)
-                0x00000228                _exit
-                0x00000228                exit
+ .fini9         0x00000242        0x0 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1056/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avrxmega7\libgcc.a(_exit.o)
+                0x00000242                _exit
+                0x00000242                exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -346,15 +346,15 @@ END GROUP
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x00000228        0x4 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1056/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avrxmega7\libgcc.a(_exit.o)
+ .fini0         0x00000242        0x4 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1056/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avrxmega7\libgcc.a(_exit.o)
  *(.fini0)
-                0x0000022c                _etext = .
+                0x00000246                _etext = .
 
-.data           0x00802000        0x0 load address 0x0000022c
+.data           0x00802000        0x0 load address 0x00000246
                 0x00802000                PROVIDE (__data_start, .)
  *(.data)
  .data          0x00802000        0x0 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1056/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avrxmega7/crtx128a4u.o
- .data          0x00802000        0x0 HBridgeActivation.o
+ .data          0x00802000        0x0 HBridgeAVRDude.o
  .data          0x00802000        0x0 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1056/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avrxmega7\libgcc.a(_exit.o)
  *(.data*)
  *(.rodata)
@@ -370,8 +370,8 @@ END GROUP
  *(.bss*)
  *(COMMON)
                 0x00802000                PROVIDE (__bss_end, .)
-                0x0000022c                __data_load_start = LOADADDR (.data)
-                0x0000022c                __data_load_end = (__data_load_start + SIZEOF (.data))
+                0x00000246                __data_load_start = LOADADDR (.data)
+                0x00000246                __data_load_end = (__data_load_start + SIZEOF (.data))
 
 .noinit         0x00802000        0x0
                 0x00802000                PROVIDE (__noinit_start, .)
@@ -419,7 +419,7 @@ END GROUP
 
 .comment        0x00000000       0x30
  *(.comment)
- .comment       0x00000000       0x30 HBridgeActivation.o
+ .comment       0x00000000       0x30 HBridgeAVRDude.o
                                  0x31 (size before relaxing)
 
 .note.gnu.build-id
@@ -440,31 +440,31 @@ END GROUP
 .debug_aranges  0x00000000       0x20
  *(.debug_aranges)
  .debug_aranges
-                0x00000000       0x20 HBridgeActivation.o
+                0x00000000       0x20 HBridgeAVRDude.o
 
 .debug_pubnames
  *(.debug_pubnames)
 
 .debug_info     0x00000000      0x21f
  *(.debug_info .gnu.linkonce.wi.*)
- .debug_info    0x00000000      0x21f HBridgeActivation.o
+ .debug_info    0x00000000      0x21f HBridgeAVRDude.o
 
 .debug_abbrev   0x00000000       0x94
  *(.debug_abbrev)
- .debug_abbrev  0x00000000       0x94 HBridgeActivation.o
+ .debug_abbrev  0x00000000       0x94 HBridgeAVRDude.o
 
-.debug_line     0x00000000      0x146
+.debug_line     0x00000000      0x168
  *(.debug_line .debug_line.* .debug_line_end)
- .debug_line    0x00000000      0x146 HBridgeActivation.o
+ .debug_line    0x00000000      0x168 HBridgeAVRDude.o
 
 .debug_frame    0x00000000       0x24
  *(.debug_frame)
- .debug_frame   0x00000000       0x24 HBridgeActivation.o
+ .debug_frame   0x00000000       0x24 HBridgeAVRDude.o
 
-.debug_str      0x00000000      0x239
+.debug_str      0x00000000      0x230
  *(.debug_str)
- .debug_str     0x00000000      0x239 HBridgeActivation.o
-                                0x26d (size before relaxing)
+ .debug_str     0x00000000      0x230 HBridgeAVRDude.o
+                                0x264 (size before relaxing)
 
 .debug_loc
  *(.debug_loc)
@@ -489,9 +489,9 @@ END GROUP
 
 .debug_ranges   0x00000000       0x10
  *(.debug_ranges)
- .debug_ranges  0x00000000       0x10 HBridgeActivation.o
+ .debug_ranges  0x00000000       0x10 HBridgeAVRDude.o
 
 .debug_macro
  *(.debug_macro)
-OUTPUT(HBridgeActivation.elf elf32-avr)
+OUTPUT(HBridgeAVRDude.elf elf32-avr)
 LOAD linker stubs
