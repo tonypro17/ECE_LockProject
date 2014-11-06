@@ -57,14 +57,32 @@ int main(void)
 	TC_EVSEL_CH0_gc,           /*TC_EVSEL_t qEventChannel*/
 	lineCount);                /*uint8_t lineCount*/
 	
+	
 	clearlcd();
 	position = GetCaptureValue(TCC0);
 	sprintf(buffer, "%d", position);
-	lcd_puts(buffer);
+	lcd_puts("what");
+		
 	
+	PORTA.OUT |= (1<<4);
+	while(1){
+		if((TCC0.INTFLAGS & TC0_CCAIF_bm) != 0){
+			PORTA.OUT &= ~(1<<4);
+			clearlcd();
+			position = GetCaptureValue(TCC0);
+			sprintf(buffer, "%d", position);
+			lcd_puts(buffer);
+			while(1){}
+		}
+	}
+	
+	
+	
+	/*
 	while(1) {
 		position = GetCaptureValue(TCC0);
 		if((TCC0.INTFLAGS & TC0_CCAIF_bm) != 0){
+			
 			rotations++;
 			clearlcd();
 			position = GetCaptureValue(TCC0);
@@ -76,6 +94,8 @@ int main(void)
 			//for(int i=0; i < 100000; i++){}
 		}
 	}
+	*/
+	
 	/*
 	while(1){
 		
