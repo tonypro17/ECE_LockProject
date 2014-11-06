@@ -92,22 +92,26 @@ bool QDEC_Port_Setup(PORT_t *qPort, uint8_t qPin, bool useIndex, bool invIO)
 
 				  
 void QDEC_TC_Dec_Setup(TC0_t * qTimer, TC_EVSEL_t qEventChannel, uint8_t lineCount)
-{
+{	
 	/* Configure TC as a quadrature counter. */
 	qTimer->CTRLD = (uint8_t) TC_EVACT_QDEC_gc | qEventChannel;
 	qTimer->PER = (lineCount * 4) - 1;
 	qTimer->CTRLA = TC_CLKSEL_DIV1_gc;
+	
+	//qTimer->CTRLA = TC0_CCAEN_bm | TC_WGMODE_NORMAL_gc;
+	//qTimer->INTCTRLA = (uint8_t) TC_CCAINTLVL_HI_gc;
+	//qTimer->CCA = 1019;
 }
 
 
 void QDEC_TC_Freq_Setup(TC0_t* qTimer, TC_EVSEL_t qEventChannel, EVSYS_CHMUX_t qPinInput, TC_CLKSEL_t clksel)
 {
 	
-	/* Configure channel 2 to input pin for freq calculation. */
-//	EVSYS.CH2MUX = qPinInput;
+	///* Configure channel 2 to input pin for freq calculation. */
+	//EVSYS.CH2MUX = qPinInput;
 	//EVSYS.CH2CTRL = EVSYS_DIGFILT_4SAMPLES_gc;
-		
-	/* Configure TC to capture frequency. */
+		//
+	///* Configure TC to capture frequency. */
 	//qTimer->CTRLD = (uint8_t) TC_EVACT_FRW_gc | qEventChannel;
 	//qTimer->PER = 0xFFFF;
 	//qTimer->CTRLB = TC0_CCAEN_bm;

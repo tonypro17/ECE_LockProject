@@ -16,7 +16,8 @@
 #define CW_DIR	0
 #define CCW_DIR	1
 
-#define GetCaptureValue(_tc)	(_tc.CCA)
+#define GetCaptureValue(_tc)	(_tc.CNT)
+#define GetInterruptControl(_tc)	(_tc.CCA)
 
 /* Prototyping of functions. */
 
