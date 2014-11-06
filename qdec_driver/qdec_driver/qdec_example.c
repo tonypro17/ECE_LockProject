@@ -25,8 +25,8 @@ int main(void)
 	lcd_setup();
 	
 	char buffer[15];
-	int position;
-	int rotations = 0;
+	double rotations = 0;
+	double percent = 0;
 	
 	PORTA.DIRSET = 0b01110011;
 	PORTA.PIN2CTRL = 0x30;
@@ -36,7 +36,7 @@ int main(void)
 	PMIC.CTRL |= PMIC_HILVLEN_bm;
 	PMIC.CTRL |= PMIC_MEDLVLEN_bm;
 	PMIC.CTRL |= PMIC_LOLVLEN_bm;
-	  
+	
 	
 
 	/* Setup PORTD with pin 0 as input for QDPH0, don't invert IO pins.
@@ -57,133 +57,55 @@ int main(void)
 	TC_EVSEL_CH0_gc,           /*TC_EVSEL_t qEventChannel*/
 	lineCount);                /*uint8_t lineCount*/
 	
-	
+	// initialize system, initial state is unlocked
 	clearlcd();
-	position = GetCaptureValue(TCC0);
-	sprintf(buffer, "%d", position);
-	lcd_puts("what");
-		
+	//position = GetCaptureValue(TCC0);
+	//sprintf(buffer, "%d", position);
+	lcd_puts("0%");
+	lcd_gotoxy(0,1);
+	lcd_puts("Unlocked");
 	
-	PORTA.OUT |= (1<<4);
-	while(1){
-		if((TCC0.INTFLAGS & TC0_CCAIF_bm) != 0){
-			PORTA.OUT &= ~(1<<4);
-			clearlcd();
-			position = GetCaptureValue(TCC0);
-			sprintf(buffer, "%d", position);
-			lcd_puts(buffer);
-			while(1){}
-		}
-	}
-	
-	
-	
-	/*
-	while(1) {
-		position = GetCaptureValue(TCC0);
-		if((TCC0.INTFLAGS & TC0_CCAIF_bm) != 0){
-			
-			rotations++;
-			clearlcd();
-			position = GetCaptureValue(TCC0);
-			sprintf(buffer, "%d", position);
-			lcd_puts(buffer);
-			lcd_gotoxy(0,1);
-			sprintf(buffer, "%d", rotations);
-			lcd_puts(buffer);
-			//for(int i=0; i < 100000; i++){}
-		}
-	}
-	*/
-	
-	/*
+	//loop forever
 	while(1){
 		
+		//wait for pushbutton
 		while(!(PORTA.IN & 1<<2)){}
 		
+		//turn motor clockwise
 		PORTA.OUT |= (1<<4);
-		for(int i=0;i<40;i++)
-		{
-			//position = GetCaptureValue(TCC0);
-			//clearlcd();
-			//sprintf(buffer, "%d", position);
-			//lcd_puts(buffer);
-			lcd_gotoxy(0,1);
-			lcd_puts("locked");
+		
+		//run until rotations is over 2000, rotation incremented with tcc0 interrupt
+		while(rotations < 2000){
+			if(TCC0.INTFLAGS & TC0_CCAIF_bm) { rotations++; }
 		}
+		
+		//stop motor, lock is now in locked state
 		PORTA.OUT &= ~(1<<4);
+		clearlcd();
+		percent = (rotations / 2000) * 100;
+		sprintf(buffer, "%d", (int)percent);
+		lcd_puts(buffer);
+		lcd_gotoxy(0,1);
+		lcd_puts("Locked");
 		
+		//wait for pushbutton
 		while(!(PORTA.IN & 1<<2)){}
-		
+			
+		//turn motor counterclockwise
 		PORTA.OUT |= (1<<6);
-		for(int i=0;i<40;i++)
-		{
-			//position = GetCaptureValue(TCC0);
-			//clearlcd();
-			//sprintf(buffer, "%d", position);
-			//lcd_puts(buffer);
-			//lcd_gotoxy(0,1);
-			lcd_puts("unlocked");
+		while(rotations >= 0){
+			if(TCC0.INTFLAGS & TC0_CCAIF_bm) { rotations--; }
 		}
-		PORTA.OUT &= ~(1<<6);
 		
-	}*/
-
-	//while(1){
-	//for(int i=0;i<10000;i++){}
-	//position = GetCaptureValue(TCC0);
-	//if(position==1000)
-	//{
-	//rotations++;
-	//}
-	//clearlcd();
-	//sprintf(buffer, "%d", position);
-	//lcd_puts(buffer);
-	//lcd_gotoxy(0,1);
-	//sprintf(buffer, "%d", rotations);
-	//lcd_puts(buffer);
-	//}
-	//PORTA.OUT &= ~(1<<4);
-	
-	//while(1){
-	//
-	//if((PORTA.IN & (1<<2)) && position<=0)
-	//{
-	//PORTA.OUT |= (1<<4);
-	//while(GetCaptureValue(TCC0)<1000)
-	//{
-	//clearlcd();
-	//sprintf(buffer, "%d", position);
-	//lcd_puts(buffer);
-	//position = GetCaptureValue(TCC0);
-	//}
-	//PORTA.OUT &= ~(1<<4);
-	//clearlcd();
-	//sprintf(buffer, "%d", position);
-	//lcd_puts(buffer);
-	//lcd_gotoxy(0,1);
-	//lcd_puts("locked");
-	//}
-	//
-	//if ((PORTA.IN & (1<<2)) && position>=10000)
-	//{
-	//PORTA.OUT |= (1<<6);
-	//while(GetCaptureValue(TCC0)>0)
-	//{
-	//clearlcd();
-	//sprintf(buffer, "%d", position);
-	//lcd_puts(buffer);
-	//position = GetCaptureValue(TCC0);
-	//}
-	//PORTA.OUT &= ~(1<<6);
-	//clearlcd();
-	//sprintf(buffer, "%d", position);
-	//lcd_puts(buffer);
-	//lcd_gotoxy(0,1);
-	//lcd_puts("unlocked");
-	//}
-	//
-	//}
+		PORTA.OUT &= ~(1<<6);
+		clearlcd();
+		percent = (rotations / 2000) * 100;
+		sprintf(buffer, "%d", (int)percent);
+		lcd_puts(buffer);
+		lcd_gotoxy(0,1);
+		lcd_puts("Unlocked");
+		
+	}
 }
 
 void lcd_setup(void)
@@ -202,6 +124,7 @@ void clearlcd(void)
 {
 	lcd_clrscr();
 	lcd_gotoxy(0,0);
+	lcd_puts("0123");
 	return;
 }
 
