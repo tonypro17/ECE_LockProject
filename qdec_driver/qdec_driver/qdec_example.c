@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <avr/pgmspace.h>
 #include "lcd.h"
+#include <util/delay.h>
 
 void lcd_setup(void);
 void clearlcd(void);
@@ -27,6 +28,7 @@ int main(void)
 	char buffer[15];
 	double rotations = 0;
 	double percent = 0;
+	double rotationtotal = 0;
 	
 	PORTA.DIRSET = 0b01110011;
 	PORTA.PIN2CTRL = 0x30;
@@ -71,37 +73,52 @@ int main(void)
 		//wait for pushbutton
 		while(!(PORTA.IN & 1<<2)){}
 		
-		//turn motor clockwise
-		PORTA.OUT |= (1<<4);
-		
-		//run until rotations is over 2000, rotation incremented with tcc0 interrupt
-		while(rotations < 2000){
-			if(TCC0.INTFLAGS & TC0_CCAIF_bm) { rotations++; }
+		for(int i=0;i<100;i++){
+			//turn motor clockwise
+			PORTA.OUT |= (1<<4);
+			
+			//run until rotations is over 20, rotation incremented with tcc0 interrupt
+			while(rotations < 25){
+				if(TCC0.INTFLAGS & TC0_CCAIF_bm) {	
+					rotations++;
+				}
+			}
+			rotationtotal += rotations;
+			rotations = 0;
+			PORTA.OUT &= ~(1<<4);
+			clearlcd();
+			percent = (rotationtotal / 2500) * 100;
+			sprintf(buffer, "%d", (int)percent);
+			lcd_puts(buffer);
+			_delay_ms(500);
 		}
 		
-		//stop motor, lock is now in locked state
-		PORTA.OUT &= ~(1<<4);
-		clearlcd();
-		percent = (rotations / 2000) * 100;
-		sprintf(buffer, "%d", (int)percent);
-		lcd_puts(buffer);
 		lcd_gotoxy(0,1);
 		lcd_puts("Locked");
 		
 		//wait for pushbutton
 		while(!(PORTA.IN & 1<<2)){}
+		
+		for(int i=0;i<100;i++){
+			//turn motor clockwise
+			PORTA.OUT |= (1<<6);
 			
-		//turn motor counterclockwise
-		PORTA.OUT |= (1<<6);
-		while(rotations >= 0){
-			if(TCC0.INTFLAGS & TC0_CCAIF_bm) { rotations--; }
+			//run until rotations is over 20, rotation incremented with tcc0 interrupt
+			while(rotations < 25){
+				if(TCC0.INTFLAGS & TC0_CCAIF_bm) {
+					rotations++;
+				}
+			}
+			rotationtotal -= rotations;
+			rotations = 0;
+			PORTA.OUT &= ~(1<<6);
+			clearlcd();
+			percent = (rotationtotal / 2500) * 100;
+			sprintf(buffer, "%d", (int)percent);
+			lcd_puts(buffer);
+			_delay_ms(500);
 		}
 		
-		PORTA.OUT &= ~(1<<6);
-		clearlcd();
-		percent = (rotations / 2000) * 100;
-		sprintf(buffer, "%d", (int)percent);
-		lcd_puts(buffer);
 		lcd_gotoxy(0,1);
 		lcd_puts("Unlocked");
 		
