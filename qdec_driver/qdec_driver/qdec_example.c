@@ -20,6 +20,23 @@ void clearlcd(void);
 #define CLOCK_DIV     64
 
 uint8_t lineCount = 255;
+uint16_t rotations = 0;
+
+// Interrupt Handler for door unlock signal
+ISR(TCC0_OVF_vect)
+{
+	//turn motor clockwise
+	PORTA.OUT |= (1<<6);	
+}
+
+// Interrupt Handler for counter
+ISR(TCC0_CCA_vect)
+{
+	rotations++;
+	
+	if(rotations >= 2500)
+		PORTA.OUT &= ~(1<<4);
+}
 
 int main(void)
 {
@@ -39,8 +56,6 @@ int main(void)
 	PMIC.CTRL |= PMIC_MEDLVLEN_bm;
 	PMIC.CTRL |= PMIC_LOLVLEN_bm;
 	
-	
-
 	/* Setup PORTD with pin 0 as input for QDPH0, don't invert IO pins.
 	*
 	* Setup event channel 0, pin 0 on PORTD as input, don't enable index.
@@ -71,8 +86,9 @@ int main(void)
 	while(1){
 		
 		//wait for pushbutton
-		while(!(PORTA.IN & 1<<2)){}
+		//while(!(PORTA.IN & 1<<2)){}
 		
+		/*
 		for(int i=0;i<100;i++){
 			//turn motor clockwise
 			PORTA.OUT |= (1<<4);
@@ -100,8 +116,6 @@ int main(void)
 		while(!(PORTA.IN & 1<<2)){}
 		
 		for(int i=0;i<100;i++){
-			//turn motor clockwise
-			PORTA.OUT |= (1<<6);
 			
 			//run until rotations is over 20, rotation incremented with tcc0 interrupt
 			while(rotations < 25){
@@ -121,7 +135,7 @@ int main(void)
 		
 		lcd_gotoxy(0,1);
 		lcd_puts("Unlocked");
-		
+		*/
 	}
 }
 
