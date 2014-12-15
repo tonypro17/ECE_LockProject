@@ -5,6 +5,7 @@
 *  Author: Nick
 */
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include "qdec_driver.h"
 #include <string.h>
 #include <stdio.h>
@@ -15,46 +16,101 @@
 
 void lcd_setup(void);
 void clearlcd(void);
+bool EVSYS_SetEventSource( uint8_t eventChannel, EVSYS_CHMUX_t eventSource );
 
 #define CLOCK_DIV_bm  TC_CLKSEL_DIV64_gc
 #define CLOCK_DIV     64
 
 uint8_t lineCount = 255;
 uint16_t rotations = 0;
+uint16_t percent;
+char buffer[15];
 
 // Interrupt Handler for door unlock signal
-ISR(TCC0_OVF_vect)
+ISR(PORTA_INT0_vect)
 {
-	//turn motor clockwise
-	PORTA.OUT |= (1<<6);	
+	
+	//Determine direction of motor by switch state
+	if(PORTA.IN & 1<<2){
+		//turn motor clockwise
+		PORTA.OUT |= (1<<6);
+		PORTA.OUT &= ~(1<<4);
+	}
+	else if(!(PORTA.IN & 1<<2)) {
+		//turn motor counter-clockwise
+		PORTA.OUT &= ~(1<<6);
+		PORTA.OUT |= (1<<4);
+	}
+	
 }
 
-// Interrupt Handler for counter
+// Interrupt Handler to stop motor on overflow
 ISR(TCC0_CCA_vect)
 {
-	rotations++;
 	
-	if(rotations >= 2500)
-		PORTA.OUT &= ~(1<<4);
+	
+	if(TCC0.CTRLFCLR & 1<<0){
+		rotations++;
+		
+		if(rotations >= 250){
+			PORTA.OUT &= ~(1<<4);
+			PORTA.OUT &= ~(1<<6);
+		}
+		
+	}
+	if(!(TCC0.CTRLFCLR & 1<<0)){
+		rotations--;
+		
+		if(rotations <= 0){
+			PORTA.OUT &= ~(1<<4);
+			PORTA.OUT &= ~(1<<6);
+		}
+	}
+	
+}
+
+//LCD Interrupt Handler
+ISR(TCE0_CCA_vect)
+{
+	clearlcd();
+	//percent = (rotations / 2500)*100;
+	sprintf(buffer, "%d", (int)rotations);
+	lcd_puts(buffer);
 }
 
 int main(void)
 {
 	lcd_setup();
 	
-	char buffer[15];
-	double rotations = 0;
-	double percent = 0;
-	double rotationtotal = 0;
-	
-	PORTA.DIRSET = 0b01110011;
-	PORTA.PIN2CTRL = 0x30;
-	PORTA.OUT |= 1<<5;
+	//double rotations = 0;
+	//double percent = 0;
+	//double rotationtotal = 0;
 	
 	//Enable interrupts
+	SREG |= (1<<7);
 	PMIC.CTRL |= PMIC_HILVLEN_bm;
 	PMIC.CTRL |= PMIC_MEDLVLEN_bm;
 	PMIC.CTRL |= PMIC_LOLVLEN_bm;
+	
+	//Set up Port A inputs / outputs
+	PORTA.DIRSET = 0b01110011;
+	PORTA.OUT |= 1<<5;
+	PORTA.OUT &= ~(1<<6);
+	PORTA.OUT &= ~(1<<4);
+	
+	//Configure PA2 as input, sense on both edges
+	PORTA.PIN2CTRL |= PORT_ISC_BOTHEDGES_gc;
+	//Configure Interrupt 0 on Port A Pin 2
+	PORTA.INTCTRL = (PORTA.INTCTRL & ~PORT_INT0LVL_gm) | PORT_INT0LVL_HI_gc;
+	PORTA.INT0MASK = (1<<2);
+	
+	//LCD Interrupt Prep
+	TCE0.PER = 1000;
+	TCE0.CTRLA = TC_CLKSEL_DIV256_gc;
+	TCE0.CTRLB = TC0_CCAEN_bm | TC_WGMODE_NORMAL_gc;
+	TCE0.INTCTRLB = TC_CCAINTLVL_LO_gc;
+	TCE0.CCA = 1000;
+	
 	
 	/* Setup PORTD with pin 0 as input for QDPH0, don't invert IO pins.
 	*
@@ -84,6 +140,12 @@ int main(void)
 	
 	//loop forever
 	while(1){
+		
+		//Clear interrupt flag when new value is captured
+		if(TCC0.INTFLAGS & TC0_CCAIF_bm){
+			TCC0.INTFLAGS |= TC0_CCAIF_bm;
+			
+		}
 		
 		//wait for pushbutton
 		//while(!(PORTA.IN & 1<<2)){}
@@ -158,4 +220,22 @@ void clearlcd(void)
 	lcd_puts("0123");
 	return;
 }
+
+bool EVSYS_SetEventSource( uint8_t eventChannel, EVSYS_CHMUX_t eventSource )
+{
+	volatile uint8_t * chMux;
+
+	/*  Check if channel is valid and set the pointer offset for the selected
+	 *  channel and assign the eventSource value.
+	 */
+	if (eventChannel < 8) {
+		chMux = &EVSYS.CH0MUX + eventChannel;
+		*chMux = eventSource;
+
+		return true;
+	} else {
+		return false;
+	}
+}
+
 

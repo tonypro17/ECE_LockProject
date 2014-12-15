@@ -100,8 +100,8 @@ void QDEC_TC_Dec_Setup(TC0_t * qTimer, TC_EVSEL_t qEventChannel, uint8_t lineCou
 	
 	//Watch for overflow
 	qTimer->CTRLB = TC0_CCAEN_bm | TC_WGMODE_NORMAL_gc;
-	qTimer->INTCTRLB = (uint8_t) TC_CCAINTLVL_HI_gc;
-	qTimer->CCA = 1000;
+	qTimer->INTCTRLB = (uint8_t) TC_CCAINTLVL_MED_gc;
+	qTimer->CCA = (lineCount * 4) - 1;
 }
 
 
