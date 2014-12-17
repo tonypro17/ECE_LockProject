@@ -96,7 +96,7 @@ void QDEC_TC_Dec_Setup(TC0_t * qTimer, TC_EVSEL_t qEventChannel, uint8_t lineCou
 	/* Configure TC as a quadrature counter. */
 	qTimer->CTRLD = (uint8_t) TC_EVACT_QDEC_gc | qEventChannel;
 	qTimer->PER = (lineCount * 4) - 1;
-	qTimer->CTRLA = TC_CLKSEL_DIV1_gc;
+	qTimer->CTRLA = TC_CLKSEL_DIV64_gc;
 	
 	//Watch for overflow
 	qTimer->CTRLB = TC0_CCAEN_bm | TC_WGMODE_NORMAL_gc;

@@ -16,14 +16,15 @@
 
 void lcd_setup(void);
 void clearlcd(void);
-bool EVSYS_SetEventSource( uint8_t eventChannel, EVSYS_CHMUX_t eventSource );
+//bool EVSYS_SetEventSource( uint8_t eventChannel, EVSYS_CHMUX_t eventSource );
 
 #define CLOCK_DIV_bm  TC_CLKSEL_DIV64_gc
 #define CLOCK_DIV     64
 
-uint8_t lineCount = 255;
-uint16_t rotations = 0;
-uint16_t percent;
+uint8_t lineCount = 60;
+int16_t rotations = 0;
+double rotations_convert;
+double rotations_display;
 char buffer[15];
 
 // Interrupt Handler for door unlock signal
@@ -32,14 +33,14 @@ ISR(PORTA_INT0_vect)
 	
 	//Determine direction of motor by switch state
 	if(PORTA.IN & 1<<2){
-		//turn motor clockwise
-		PORTA.OUT |= (1<<6);
-		PORTA.OUT &= ~(1<<4);
-	}
-	else if(!(PORTA.IN & 1<<2)) {
 		//turn motor counter-clockwise
 		PORTA.OUT &= ~(1<<6);
 		PORTA.OUT |= (1<<4);
+	}
+	else if(!(PORTA.IN & 1<<2)) {
+		//turn motor clockwise
+		PORTA.OUT |= (1<<6);
+		PORTA.OUT &= ~(1<<4);
 	}
 	
 }
@@ -48,23 +49,26 @@ ISR(PORTA_INT0_vect)
 ISR(TCC0_CCA_vect)
 {
 	
-	
 	if(TCC0.CTRLFCLR & 1<<0){
-		rotations++;
 		
-		if(rotations >= 250){
-			PORTA.OUT &= ~(1<<4);
-			PORTA.OUT &= ~(1<<6);
-		}
-		
-	}
-	if(!(TCC0.CTRLFCLR & 1<<0)){
 		rotations--;
-		
+
 		if(rotations <= 0){
 			PORTA.OUT &= ~(1<<4);
 			PORTA.OUT &= ~(1<<6);
 		}
+			
+	}
+	
+	if(!(TCC0.CTRLFCLR & 1<<0)){
+		
+		rotations++;
+		
+		if(rotations >= 100){
+			PORTA.OUT &= ~(1<<4);
+			PORTA.OUT &= ~(1<<6);
+		}
+		
 	}
 	
 }
@@ -73,20 +77,33 @@ ISR(TCC0_CCA_vect)
 ISR(TCE0_CCA_vect)
 {
 	clearlcd();
-	//percent = (rotations / 2500)*100;
-	sprintf(buffer, "%d", (int)rotations);
-	lcd_puts(buffer);
+	
+	//Account for error at beginning of locking
+	if(rotations >= -10 && rotations <= 30){
+		rotations_display = 0;
+		sprintf(buffer, "%d", (int)(rotations_display));
+		lcd_puts(buffer);
+	}
+	//In-between 
+	else if(rotations > 30 && rotations < 89){
+		rotations_convert = (double)(rotations);
+		rotations_display = ((rotations_convert - 30) / 58) * 100;
+		sprintf(buffer, "%d", (int)(rotations_display));
+		lcd_puts(buffer);	
+	}
+	//In-between
+	else if(rotations >= 89 && rotations < 130){
+		rotations_display = 100;
+		sprintf(buffer, "%d", (int)(rotations_display));
+		lcd_puts(buffer);
+	}
 }
 
 int main(void)
 {
 	lcd_setup();
 	
-	//double rotations = 0;
-	//double percent = 0;
-	//double rotationtotal = 0;
-	
-	//Enable interrupts
+	//Enable global interrupts
 	SREG |= (1<<7);
 	PMIC.CTRL |= PMIC_HILVLEN_bm;
 	PMIC.CTRL |= PMIC_MEDLVLEN_bm;
@@ -119,7 +136,7 @@ int main(void)
 	*
 	* Setup TCC0 with Event channel 0 and lineCount.
 	*/
-	QDEC_Total_Setup(&PORTD,                    /*PORT_t * qPort*/
+	QDEC_Total_Setup(&PORTD,   /*PORT_t * qPort*/
 	0,                         /*uint8_t qPin*/
 	false,                     /*bool invIO*/
 	0,                         /*uint8_t qEvMux*/
@@ -147,57 +164,6 @@ int main(void)
 			
 		}
 		
-		//wait for pushbutton
-		//while(!(PORTA.IN & 1<<2)){}
-		
-		/*
-		for(int i=0;i<100;i++){
-			//turn motor clockwise
-			PORTA.OUT |= (1<<4);
-			
-			//run until rotations is over 20, rotation incremented with tcc0 interrupt
-			while(rotations < 25){
-				if(TCC0.INTFLAGS & TC0_CCAIF_bm) {	
-					rotations++;
-				}
-			}
-			rotationtotal += rotations;
-			rotations = 0;
-			PORTA.OUT &= ~(1<<4);
-			clearlcd();
-			percent = (rotationtotal / 2500) * 100;
-			sprintf(buffer, "%d", (int)percent);
-			lcd_puts(buffer);
-			_delay_ms(500);
-		}
-		
-		lcd_gotoxy(0,1);
-		lcd_puts("Locked");
-		
-		//wait for pushbutton
-		while(!(PORTA.IN & 1<<2)){}
-		
-		for(int i=0;i<100;i++){
-			
-			//run until rotations is over 20, rotation incremented with tcc0 interrupt
-			while(rotations < 25){
-				if(TCC0.INTFLAGS & TC0_CCAIF_bm) {
-					rotations++;
-				}
-			}
-			rotationtotal -= rotations;
-			rotations = 0;
-			PORTA.OUT &= ~(1<<6);
-			clearlcd();
-			percent = (rotationtotal / 2500) * 100;
-			sprintf(buffer, "%d", (int)percent);
-			lcd_puts(buffer);
-			_delay_ms(500);
-		}
-		
-		lcd_gotoxy(0,1);
-		lcd_puts("Unlocked");
-		*/
 	}
 }
 
@@ -220,22 +186,4 @@ void clearlcd(void)
 	lcd_puts("0123");
 	return;
 }
-
-bool EVSYS_SetEventSource( uint8_t eventChannel, EVSYS_CHMUX_t eventSource )
-{
-	volatile uint8_t * chMux;
-
-	/*  Check if channel is valid and set the pointer offset for the selected
-	 *  channel and assign the eventSource value.
-	 */
-	if (eventChannel < 8) {
-		chMux = &EVSYS.CH0MUX + eventChannel;
-		*chMux = eventSource;
-
-		return true;
-	} else {
-		return false;
-	}
-}
-
 
